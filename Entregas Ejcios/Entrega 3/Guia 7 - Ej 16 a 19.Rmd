@@ -1,0 +1,96 @@
+---
+title: "Guia 7-Ej 16 a 19"
+author: "Agustin Muñoz Gonzalez"
+date: "11/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparamos el entorno.
+
+Limpiamos los registros.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+alturas=read.csv('alturas_n_500.csv',header = T)
+attach(alturas)
+altura=altura[genero=='M']
+altura_madre=altura_madre[genero=='M']
+```
+
+Vamos a precisar la función predigo_altura_masculino que definimos en el Ejercicio 15.
+
+```{r}
+predigo_altura_masculino=function(altura, altura_madre, altura_mama_nueva, ventana){
+  if(all(altura_madre > altura_mama_nueva+ventana) || all(altura_madre < altura_mama_nueva-ventana)){
+    NA
+  }else{
+  mean(altura[altura_madre >= altura_mama_nueva-ventana 
+              & altura_madre <= altura_mama_nueva+ventana])
+  }
+}
+```
+
+\clearpage
+
+# Item a)
+
+## 16/17. Graficar la función predigo altura masculino, con h =0.5,1 y 5, evaluandola a lo largo de una una grilla sobre un intervalo que cubra todas las alturas observadas en las madres.
+
+Vamos a definir la grilla y una función auxiliar g(altura_mama_nueva,ventana)=predigo_altura_masculino(altura,altura_madre,altura_mama_nueva,ventana) para usar el comando sapply(grilla, g, ventanas[i]), con ventanas=c(0.5,1,5).
+
+```{r}
+grilla=seq(range(altura_madre)[1],range(altura_madre)[2],0.1)
+g=function(altura_mama_nueva,ventana){
+  predigo_altura_masculino(altura,altura_madre,altura_mama_nueva,ventana)
+}
+plot(altura_madre,altura,xlab='Altura madre', ylab='Altura hijo')
+points(grilla,sapply(grilla,g,0.5),type='l',col='blue')
+points(grilla,sapply(grilla,g,1),type='l',col='red')
+points(grilla,sapply(grilla,g,5),type='l',col='green')
+```
+
+\clearpage
+
+# Item b)
+
+## 18. Implemente una función que tenga por input un conjunto de valores de X, sus correspondientes valores de Y, un nuevo valor x donde queremos predecir, y el tamaño h de la ventana que vamos a utilizar a la hora de hacer promedios moviles. predigoVentana(X, Y, xNuevo, h)
+
+```{r}
+predigoVentana=function(X, Y, xNuevo, h){
+  if(all(X>xNuevo+h)||all(X<xNuevo-h)){
+    NA
+  }else{
+  mean(Y[X>= xNuevo-h & X <= xNuevo + h])
+  }
+}
+```
+
+\clearpage
+
+# Item c)
+
+## 19. Pensar en alguna situación relacionada a su campo de trabajo donde pueda ser importante predecir cierta variable respuesta con una (o varias) variables explicativas. Contanos el problema, el marco teórico y avisanos si tenés datos que puedas compartir. Asi vemos que dá!
+
+Actualmente estoy haciendo el doctorado en matemática financiera y en particular en el problema de establecer el precio actual de ciertos derivados financieros como podrían ser las opciones.
+
+[En lo siguiente explico 'brevemente' lo que es una opción financiera, sé que hay que ser breves con esto por eso les doy la opción de no leerlo si ya saben lo que son :D
+
+Voy a tratar de explicar brevemente qué es una opción financiera. Como saben una de las cosas que se tradean en la bolsa son acciones de empresas, es decir, títulos de propiedad de empresas. Pero hay otro activo que podemos comprar y vender que son las opciones asociadas a esas acciones. Una opción le da el \textbf{derecho} al tenedor de esa opción de comprar (opción call) o vender (opción put) el activo subyacente a un cierto precio de ejercicio K y en una cierta fecha de expiración T. O sea la opción tiene dos participantes, uno con un derecho y su contraparte con la obligación de satisfacer ese derecho si el tenedor de la opción desea ejecutarla.
+
+Notemos que una opción call va a tener sentido ejecutarla si el precio de la acción a tiempo T (S_T) es mayor a K, porque en ese caso ejercemos el derecho de comprarle la acción a K a la contraparte de la opción y podemos venderla en el mercado a S_T y entonces tenemos una ganancia de S_T-K. Pero si en cambio S_T<K entonces no ejecutamos el call y no perdemos ni ganamos nada.
+
+Análogamente un put va a tener sentido ejecutarlo si K>S_T porque en tal caso le vendemos la opción a la contraparte a K y compramos una acción (o no) en el mercado y hacemos una ganancia de K-S_T.
+
+Veamoslo con un  ejemplo sencillo. Supongamos que el precio de una acción de una empresa XYZ hoy vale 10p y nosotros creemos que en un mes va a caer a 5p. Entonces compramos una opción put con precio de ejercicio 10p y tiempo de expiración T=1 mes. Si tenemos razón entonces en un mes la acción cayó de 10p a 5p y nosotros la vendemos a 10p, y tenemos una ganancia de 10p-5p=5p.
+
+En general las opciones se usan para obtener retornos mas grandes que si compraramos el activo subyacente directamente y para disipar el riesgo del portfolio (conjunto de activos financieros).]
+
+Ocurre que como la opción es un derecho y no una obligación, ese derecho tiene que tener algún valor hoy (porque sino, ¿quién querría ser la contraparte de la opción?). Dado que nosotros no sabemos el valor futuro de la acción pero las opciones se venden HOY, entonces un problema a pensar es qué valor le ponemos a una opción HOY sobre cierta acción con precio actual S. 
+
+En general uno supone que S se mueve aleatoriamente y entonces conociendo valores pasados de S o valores de otros activos muy parecidos uno podría predecir (por ejemplo usando el promedio) el valor futuro de S, S_T.
+
+(En rigor no se usa el promedio sino que uno modela el movimiento de una opción, y en general de cualquier activo, a partir de una ecuación diferencial llamada ecuación de Black-Scholes y a partir de resolver esa ecuación uno tiene posibles valores futuros para ese activo.)
