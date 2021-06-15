@@ -1,0 +1,135 @@
+---
+title: "Prueba gganimate"
+author: "Agustín Muñoz González"
+date: "15/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparamos el entorno
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(gganimate)
+library(tidyverse)
+```
+
+Empecemos cargando los datos de income y life expectancy de la página <https://www.gapminder.org/data/>.
+
+
+```{r}
+gdpPercap <- read_csv('income_per_person_gdppercapita_ppp_inflation_adjusted.csv')
+lifeExp <- read_csv('life_expectancy_years.csv')
+```
+
+**Receta para preparar estos datos**
+- Filtrar para los países que hablan español.
+- Juntar los años en una misma columna.
+- Hacer un merge de las tablas de Income y LifeExp.
+- Asignar código de países.
+- Transformar Income a escala logarítmica.
+
+```{r}
+# Filter for HispAm countries
+hispam_vec <- c(
+  'Argentina', 'Brazil', 'Bolivia', 'Chile', 'Colombia',
+  'Costa Rica', 'Cuba', 'Dominican Republic', 'Ecuador', 
+  'El Salvador', 'Guatemala', 'Honduras', 'Mexico', 
+  'Nicaragua', 'Panama', 'Paraguay', 'Peru', 'Uruguay',
+  'Spain', 'Puerto Rico', 'Venezuela' )
+
+# dplyr::filter countries in hispam
+######
+gdpPercap <- filter(gdpPercap, country %in% hispam_vec)
+lifeExp <- filter(lifeExp, country %in% hispam_vec)
+
+# tidyr::gather year columns for PIB and LifeExp
+gdpPercap_tidy <- gather(gdpPercap, "year", "gdpPercap", -1)
+lifeExp_tidy <- gather(lifeExp, "year", "lifeExp", -1)
+
+######
+
+
+# dplyr::inner_join tidyr version of PIB and LifeExp
+gapminder_hispam <- inner_join(gdpPercap_tidy, lifeExp_tidy,
+           by = c("country" = "country", "year" = "year"))
+
+countries <- list(Argentina = 'ar',
+                  Brazil = 'br',
+                  Bolivia = 'bo',
+                  Chile = 'cl',
+                  Colombia = 'co',
+                  Costa_Rica = 'cr',
+                  Cuba = 'cu',
+                  Dominican_Republic = 'do',
+                  Ecuador = 'ec',
+                  El_Salvador = 'sv',
+                  Guatemala = 'gt',
+                  Honduras = 'hn',
+                  Mexico = 'mx',
+                  Nicaragua = 'ni',
+                  Panama = 'pa',
+                  Paraguay = 'py',
+                  Peru = 'pe',
+                  Puerto_Rico = 'pr',
+                  Spain = 'es',
+                  Uruguay = 'uy',
+                  Venezuela = 've')
+
+# function to assing country code
+assign_code <- function(country_name){
+  # white spaced country name
+  if (country_name == 'Costa Rica') {
+    country_name <- 'Costa_Rica'
+  } else if (country_name == 'Dominican Republic') {
+    country_name <- 'Dominican_Republic'
+  } else if (country_name == 'El Salvador') {
+    country_name <- 'El_Salvador'
+  } else if (country_name == 'Puerto Rico') {
+    country_name <- 'Puerto_Rico'
+  }
+  # para todos los demas
+  country_code <- countries[[country_name]]
+  return(country_code)
+}
+
+gapminder_hispam <- mutate(gapminder_hispam,
+                           code = mapply(assign_code, as.character(country)),
+                           log_gdppc = log10(gdpPercap/4))
+```
+
+Creemos el GIF.
+
+```{r}
+# install.packages(gganimate)
+library(gganimate)
+# devtools::install_github('rensa/ggflags')
+library(ggflags)
+# install.packages("gifski")
+library(gifski)
+
+# define animation object
+anim <- gapminder_hispam %>%
+  filter(year >= 1900) %>%
+  ggplot(aes(x = log_gdppc, y = lifeExp, country = code)) +
+  theme(text = element_text(size=20)) +
+  ylim(10,90) +
+  scale_x_continuous(breaks = c(2,3,4),
+                     labels = c("$400","$4 000","$40 000"),
+                     limits = c(2,4.1)) +
+  geom_flag(size = 10) +
+  transition_states(year, transition_length = 1, state_length = 1) +
+  ylab('Años de vida') +
+  xlab('Ingreso por persona (USD)') +
+  ggtitle('Ahora mostrando año {closest_state}')
+
+# animate it
+animate(anim,
+        width = 400, height = 400,
+        nframes = 480, fps = 24)
+anim_save("animacion.gif", anim)
+```
+
