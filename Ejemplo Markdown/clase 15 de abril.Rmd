@@ -1,0 +1,99 @@
+---
+title: "clase 1"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio clase 15/4/2020
+
+Considerar el conjunto de datos mtcars en R. (Ver help(mtcars))
+
+```{r}
+datos<-mtcars
+help(mtcars) #así veo todo el contenido del data frame
+
+
+```
+
+A)¿Qué variables observa en el data Frame?
+
+```{r}
+names(mtcars)
+```
+
+Usando la función *names* podemos obtener los nombres de las variables, pero como están abreviadas no se entiende bien que es cada una. Puedo usar Help que me da mayor detalle del contenido.
+
+B)¿Cuántas observaciones tiene cada variable?
+
+```{r}
+dim(datos)
+```
+
+Observemos que las filas de la tabla de datos corresponden a las observaciones, y las columnas a las variables, por lo tanto mirando la dimensión del data frame **datos** observamos que consiste en 32 observaciones de 11 variables.
+
+C)¿Qué tipo de variables son?
+
+```{r}
+str(datos)
+```
+
+La función *str* nos devuelve la estructura del data frame, en la que como primer elemento luego del nombre de la variable podemos ver cual es el tipo para esa variable. En este caso consideró a todas las variables como numéricas. 
+
+D)¿Le parece correcto que todas las variables se consideren numéricas? ¿Cual cambiaría?¿cómo lo haría?
+
+La variable **vs** es una variable categórica que vale 0 si el motor tiene forma de V o 1 si es de cilindros alineados. Por lo tanto lo correcto sería considerar a esta variable como un factor. Lo mismo con la variable **am**.
+
+```{r}
+datos$vs<-as.factor(datos$vs)
+datos$am<-as.factor(datos$am)
+
+str(datos)
+```
+
+
+E) ¿Qué autos tienen 4 velocidades?
+
+Tenemos que pedir que nos devuelva el nombre de las filas que correspondan a los datos que en la columna **gear** tengan el valor 4
+
+```{r}
+rownames(datos[datos$gear==4,])
+```
+
+
+F) ¿Qué subconjunto de mtcars es mtcars[mtcars\$disp > 150 & mtcars\$mpg > 20,]?
+
+En esta línea de código pedimos que del data frame mtcars nos muestre todos los datos correspondientes a los autos que tienen un valor de **disp** mayor a 150 y a demás consumen más de 20 millas por galón. Como llamé **datos** a mis datos, cambio la línea de código adaptándola a mi nombre.
+
+```{r}
+datos[datos$disp > 150 & datos$mpg > 20,]
+```
+
+
+G) ¿Qué autos tienen 4 velocidades y transmisión manual?
+
+Muy similar al ítem (E), pero agregando una condición más.
+
+```{r}
+rownames(datos[datos$gear==4 & datos$am==1,])
+
+```
+
+
+H) Hallar la cantidad media de millas por galón de los autos con 2 carburadores.
+
+Usamos la función *mean* para estimar la cantidad media de la variable **mpg**, contemplando que solo queremos el subconjunto correspondiente a los autos con 2 carburadores
+
+```{r}
+mean(datos$mpg[datos$carb==2])
+```
+
+
+I) Graficar el consumo de combustible de los automóviles (mpg) vs el peso del motor (wt). Analizar lo observado.
+```{r}
+plot(datos$mpg,datos$wt,pch=20,col="Darkblue", xlab="Millas por galón",
+     ylab="Peso del motor", main="Gráfico para observar tendencia")
+```
+
