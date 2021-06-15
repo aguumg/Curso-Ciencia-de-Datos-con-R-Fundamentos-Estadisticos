@@ -1,0 +1,9 @@
+-Variable categorica: es una variable que separa los datos en categorias:
+
+Ej: Sexo, survived, pclass, etc --> Son categoricas en tanto que separan a lo datos en las categorias: male/female, 0/1, 1st/2nd/3rd, etc.
+
+No ej: Edad --> Edad no es categorica en tanto que no agrupa datos. O sea puede pasar que tengamos gente de la misma edad pero a la hora de pensar en informacion uno no piensa en el grupo "Personas de 27 años" pero uno sí piensa por ejemplo en "Personas que sobrevivieron".
+
+-Variables cuantitativas vs variables cualitativas: La diferencia es que las cuantitativas son una cantidad (un numero) y las cualitativas (si bien pueden tambien estar representadas por numeros) aportan categorías. Digamos, está relacionado con variables categóricas vs no categóricas.
+
+

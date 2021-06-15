@@ -1,0 +1,145 @@
+---
+title: "Graficos with ggplot"
+author: "Agustin Muñoz Gonzalez"
+date: "11/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### Preparamos el entorno.
+
+Limpiamos los registros y attachamos. (setear el directorio de trabajo!)
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+tit=read.csv('titanic.csv', header=T)
+attach(tit)
+library(ggplot2)
+```
+
+## ¿Cuándo usamos cada gráfico?
+
+Antes que nada mencionar que no todos los tipos de gráficos sirven para lo mismo. 
+
+Por ejemplo si queremos ver relaciones entre variables de tipo numérico, un ǵrafico de barras no va a aportar información muy clara, y en cambio un gráfico de dispersión es mas adecuado. Pero si nos interesa ver como se distribuyen los datos de cierta variable numerica en otra variabla categórica entonces el adecuado sería un gráfico de caja, ya que un diagrama de dispersión, de barras o de torta serían simplemente manchas negras (si los datos numéricos son muchos).
+
+Como para tener en la cabeza, los distintos gráficos son adecuados para las siguientes situaciones (a grandes rasgos)
+\begin{itemize}
+        \item Histograma: Para estudiar densidad de una variable numérica.
+        \item Gráfico de caja: Para estudiar var categorica vs var numérica. Es decir, la disposición de la numérica en las categorías o grupos de la categórica.
+        \item Diagrama de dispersión: Para estudiar var numérica vs var numérica.
+        \item Gráfico de barras o de torta: Para estudiar la distribución de una (o más) var categórica en el total de datos.
+\end{itemize}
+
+\clearpage
+
+## Scatterplots
+
+Me basé en <https://mathstat.slu.edu/~speegle/_book/ggplot.html>
+
+Carguemos el set de datos mpg de la libreria ggplot2.
+
+```{r}
+data(mpg)
+head(mpg)
+tail(mpg)
+```
+
+Grafiquemos un poco.
+
+```{r}
+ggplot(data = mpg, aes(x=displ, y=hwy))
+ggplot(data = mpg, aes(x=displ, y=hwy))+
+  geom_point()
+ggplot(data = mpg, aes(x=displ, y=hwy))+
+  geom_line()
+ggplot(data = mpg, aes(x=displ, y=hwy))+
+  geom_smooth()+
+  geom_point()
+```
+
+\clearpage
+
+```{r}
+library(ISwR)
+juul$tanner=as.factor(juul$tanner)
+juul$sex=as.factor(juul$sex)
+ggplot(juul, aes(x = age,y = igf1, color = tanner)) +
+  geom_point()
+  ggtitle('Age vs igf1')
+ggplot(juul[!is.na(juul$tanner),], aes(x = age,y = igf1, color = tanner)) +
+  geom_point()
+  labs(title ="Age vs igf1", x = "Age", y = "IGF1")
+```
+
+\clearpage
+
+## Barplots
+
+
+```{r}
+ggplot(tit,aes(x=sex))+
+  geom_bar(color='green', fill=c('magenta','blue'))
+```
+
+
+\clearpage
+
+## Boxplots
+
+```{r}
+ggplot(juul, aes(x = "x", y = igf1)) + 
+  geom_boxplot(fill='magenta')
+ggplot(juul, aes(x = as.factor(sex), y = igf1)) + 
+  geom_boxplot()
+# no anda: era porque sex no era un factor!
+ggplot(juul, aes(x = as.factor(tanner), y = igf1)) + 
+  geom_boxplot()
+# no anda: era porque tanner no era un factor!
+```
+
+
+\clearpage
+
+## Histograms
+
+```{r}
+ggplot(juul, aes(x = igf1)) + 
+  geom_histogram(bins = 20)
+#bins = cantidad decolumnas del histograma
+ggplot(juul, aes(x = igf1)) + 
+  geom_histogram(aes(fill = as.factor(juul$tanner)))
+# Por qué no los pinta? será que el largo de tanner
+# no es el mismo que la cantidad de columnas (=bins)?
+# No, era porque el fill tiene que ser un factor!
+```
+
+Better would be if we had each histogram plotted on its own axes. In the graphical lexicon, that is called faceting.
+
+```{r}
+ggplot(juul, aes(x = igf1)) + 
+  geom_histogram(aes(fill = as.factor(juul$tanner))) +
+  facet_wrap(~tanner)
+```
+
+Now, though, the colors don’t mean anything, so we could color by another variable instead of tanner, such as by sex.
+
+```{r}
+ggplot(juul, aes(x = igf1)) + 
+  geom_histogram(mapping = aes(fill = as.factor(juul$sex))) +
+  facet_wrap(~tanner)
+```
+
+Occasionally, we prefer to free up the axes so that they are not all on the same scale. 
+
+```{r}
+ggplot(juul, aes(x = igf1)) + 
+  geom_histogram(mapping = aes(fill = sex)) +
+  facet_wrap(~tanner, scales = "free_y")
+```
+
+
+
