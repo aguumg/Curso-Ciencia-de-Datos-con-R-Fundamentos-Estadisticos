@@ -1,0 +1,255 @@
+---
+title: "Guia 1"
+author: "Agustin Muñoz Gonzalez"
+date: "6/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Limpiamos los registros.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+## 1
+
+```{r}
+x=c(1,2,3)
+y=c(6,5,4)
+x*2 # Multiplica cada elemento de x por 2
+x*y # Multiplica x_i*y_i
+x[1]*y[2] #Multiplica x_1*y_2
+1/x #Devuelve el vector formado por los inversos de cada coord de x
+(1:10)*x[2] #Multiplica cada coord del vector (1,...,10) por x[2]
+rep(c(1,1,2),times=2) #Devuelve el vector (1,1,2,1,1,2)
+
+#seq(...) devuelve un vector de longitud 5 empezando en 0 y terminando en 10
+#Los vectores v_1, v_2 se podrán sumar siempre que length(v_1)=n*length(v_2)
+#en tal caso si pensamos a v_1 como n vectores de longitud length(v_2)
+#v_1+v_2 le suma a v_2 cada uno de esos n vectores y devuelve el vector de longitud n*length(v_2) resultante.
+seq(from=0,to=10,length.out=5)+1:10 
+
+#Veamos que ocurre si se multiplican vectores de distinta longitud
+z=c(1,2,3,4)
+x*z
+#devuelve error porque length(z)!=n*length(x), para todo n.
+```
+
+\clearpage
+
+## 2
+
+```{r}
+tratamiento=c(rep('A',20),rep('B',18),rep('C',22))
+J=seq(1,30,2)
+J[1]+J[8]
+```
+
+\clearpage
+
+## 3 y 4
+
+```{r}
+sum((1:100))
+sum((1:100)^2)
+```
+
+\clearpage
+
+## 5
+
+```{r}
+#a) El cjto de datos tiene 153 observaciones y 6 variables.
+dim(airquality)
+
+#b) Los nombres de las variables son: 
+names(airquality)
+
+#c) Una forma:
+#Gracias a los comandos
+attach(airquality) #Para poder buscar las variables sin usar airquality$Ozone, etc. Ver search() para mostrar todos los paquetes/nombres atachados.
+Ozone
+Solar.R
+Wind
+Temp
+Month
+Day
+
+#Vemos que las variables con datos faltantes son Ozone y Solar.R. 
+#(no es muy eficiente esta resolución, pero no se como buscar elementos que cumplan cierta función)
+#Otra forma:
+#which(Ozone==is.na) #no funca, ver dps de la duda.
+
+#d) El mes de Mayo tiene 31 observaciones. En gral cada mes tiene tanas obs como su cantidad de dias.
+length(which(Month==5)) #which devuelve las coord que satisfacen la condición.
+```
+
+\clearpage
+
+## 6
+
+```{r}
+attach(mtcars)
+#a) 
+mtcars[mtcars$gear==4,] #si no ataché mtcars
+mtcars[gear==4,] #si ataché mtcars
+
+#b)
+mtcars[disp > 150 & mpg > 20,]
+#devuelve los autos tq disp > 150 y mpg > 20.
+
+#c)
+rownames(mtcars[gear == 4 & am==1,])
+
+#d)
+#a través de las columnas
+colMeans(mtcars[carb == 2,][1])
+#Una forma de cargar sólo la columna (sin los nombres) es mtcars[carb == 2,][,1]
+#en general datos[,n] y datos[n,] carga la columna n y la fila n resp. de lo cjto de datos 'datos'.
+#Para buscar por nombre usar las comillas Ej: mtcars["Volvo 142E",]
+#a través de las filas
+mean(mpg[carb==2])
+
+data=data.frame("Desplazamiento"=mtcars["drat"]) #¿cómo se hacía esto?
+
+mtcars[1]
+
+#Graficar mpg x wt
+#plot(mtcars["mpg"],mtcars["wt"]) #ojo que esto carga las columnas, i.e. como dataframe
+plot(mtcars["mpg"][,1],mtcars["wt"][,1],xlab="Consumo",ylab="Peso")
+plot(mpg,wt)#aca los cargo como filas
+```
+
+\clearpage
+
+## 7
+
+```{r}
+#Primero vamos al directorio actual que es donde tenemos el archivo arbolado-en-espacios-verdes.csv
+setwd("~/Escritorio/1er Cuatri/Ciencia de Datos con R_ Fundamentos Estadisticos/Prácticas/Guia 1/Resolución parte 1")
+
+
+#a)
+arboles=read.csv('arbolado-en-espacios-verdes.csv')
+#En el bloque de enviroment vemos que el cjto de datos tiene 51502 obs y 17 variables.
+
+#b)
+names(arboles)
+
+#c)
+attach(arboles)
+mean(altura_tot)
+
+#d)
+length(arboles[espacio_ve == 'ARENALES',1])
+#notar que arboles[espacio_ve == 'ARENALES',1]==arboles[espacio_ve == 'ARENALES',][1]
+#pero arboles[espacio_ve == 'ARENALES',][1] lee la col 1 pero como una lista con 1 solo elementos formado por la columna (i.e. length=1)
+#en cambio arboles[espacio_ve == 'ARENALES',1] lee la columna 1 como una lista (i.e. length=length(col 1))
+
+#e)
+arboles_cercanos = data.frame(arboles[espacio_ve == 'LAGO REGATAS',])
+
+#f)
+unique(arboles_cercanos$nombre_com)
+```
+
+\clearpage
+
+## 8
+
+```{r}
+library('PASWR2')
+tit=TITANIC3
+attach(tit)
+
+#a)
+mean(tit[pclass=='1st','survived']) #prop_1st
+mean(tit[pclass=='2nd','survived']) #prop_2nd
+mean(tit[pclass=='3rd','survived']) #prop_3rd
+
+#b)
+mean(tit[pclass=='1st' & sex =='male','survived']) #prop 1st male
+mean(tit[pclass=='1st' & sex =='female','survived']) #prop 1st female
+
+mean(tit[pclass=='2nd' & sex =='male','survived']) #prop 2nd male
+mean(tit[pclass=='2nd' & sex =='female','survived']) #prop 2nd female
+
+mean(tit[pclass=='3rd' & sex =='male','survived']) #prop 3rd male
+mean(tit[pclass=='3rd' & sex =='female','survived']) #prop 3rd female
+
+#Las mujeres de 3ra tuvieron una tasa mas alta de supervivencia que los varones de 1ra.
+#Y en general las mujeres de cada clase tuvieran una tasa de supervivencia muy superior que la de los hombres de la misma clase.
+
+#c)
+max(tit[survived == 1 & sex=='female','age'], na.rm=T)
+```
+
+
+\clearpage
+
+## 9
+
+```{r}
+library(PASWR2)
+data("CARS2004")
+car=CARS2004
+attach(car)
+
+#a)
+#una forma
+for (i in levels(country))
+{print(i)
+print(car[country==i,2]*car[country==i,4])}
+
+#otra
+for (i in country)
+{print(i)
+  print(car[country==i,2]*car[country==i,4])}
+
+#la diferencia entre levels(country) y country, es que levels(country) está ordenado alfabet.
+
+#otra
+total_autos=c()
+for (i in country)
+{total_autos=append(total_autos,c(i,car[country==i,2]*car[country==i,4]))}
+#b)
+for (i in levels(country))
+{print(i)
+  print(car[country==i,3]/(car[country==i,2]*car[country==i,4]))}
+
+#c)
+tasa_muerte=c()
+for (i in levels(country))
+{tasa_muerte=append(tasa_muerte,car[country==i,3]/(car[country==i,2]*car[country==i,4]))}
+#mortandad=data.frame(pais=levels(country),tasa_muerte)
+barplot(height=tasa_muerte,names.arg=levels(country))
+
+#d)
+#El país con la mayor tasa de mortandad es 
+levels(country)[which.max(tasa_muerte)]
+#El país con la menor tasa de mortandad es 
+levels(country)[which.min(tasa_muerte)]
+
+#e)
+total_autos=c()
+for (i in population)
+{total_autos=append(total_autos,car[population==i,2]*car[population==i,4])}
+plot(total_autos,population,xlab='autos',ylab='poblacion')
+
+#f)
+total_autos=c()
+tasa_muerte=c()
+for (i in population)
+{total_autos=append(total_autos,car[population==i,2]*car[population==i,4])
+tasa_muerte=append(tasa_muerte,car[population==i,3]/(car[population==i,2]*car[population==i,4]))}
+plot(total_autos,tasa_muerte,xlab='autos',ylab='tasa de mortalidad')
+
+
+```
+
+
+

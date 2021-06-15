@@ -1,0 +1,137 @@
+---
+title: "Tarea Alturas"
+author: "Agustin Muñoz Gonzalez"
+date: "6/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparamos el entorno.
+
+Limpiamos los registros.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+## Tarea 1
+
+### 1
+
+```{r}
+alturas=read.csv('alturas_n_200.csv',header = T)
+attach(alturas)
+```
+
+\clearpage
+
+### 2
+
+```{r}
+names(alturas)
+```
+
+
+### 3
+Una forma de ver esto es usando el comando \textit{dim} y nos quedamos con el primer valor.
+
+```{r}
+dim(alturas)[1]
+nrow(alturas)
+```
+
+\clearpage
+
+### 4
+
+```{r}
+promedio_total=mean(altura)
+promedio_M=mean(altura[genero=='M'])
+promedio_F=mean(altura[genero=='F'])
+```
+
+\clearpage
+
+### 5
+Con el valor promedio_M podemos predecir la altura de un nuevo individuo masculino.
+
+\clearpage
+
+### 6
+Para predecir la altura de un nuevo individuo masculino cuya madre es bajita podemos hacer por ejemplo un promedio de los datos de aquellos individuos cuyo genero=='M' y tal que contextura_madre=='bajita'
+
+```{r}
+promedio_M_bajita=mean(altura[genero=='M' & contextura_madre=='bajita'])
+```
+
+O SEA LA IDEA ES MOSTRAR QUE LA MEDIA O EL PROMEDIO NO SÓLO ES UNA MEDIDA DE RESUMEN DE DATOS SINO TAMBIÉN NOS SIRVE COMO PREDICTOR!
+
+\clearpage
+
+## Tarea 2
+
+### 7
+
+```{r}
+plot(altura_madre,altura,type='n')
+points(altura_madre[genero=='M'],altura[genero=='M'],col='blue')
+points(altura_madre[genero=='F'],altura[genero=='F'],col='red')
+```
+
+\clearpage
+
+### 8
+
+```{r}
+filtro=1
+mean(altura[156-filtro <= altura_madre & altura_madre<= 156+filtro])
+plot(altura_madre,altura,type='n')
+points(altura_madre[genero=='M'],altura[genero=='M'],col='blue')
+points(altura_madre[genero=='F'],altura[genero=='F'],col='red')
+abline(v=seq(156-filtro,156+filtro,0.1),col='grey')
+```
+¿cómo filtro altura para pedirle que se quede con las altura_madre en un cierto intervalo? digo porne altura_madre in c(A,B)?
+
+ESTO SE LLAMA PROMEDIO MOVIL PORQUE UNO MUEVE EL PARÁMETRO QUE FILTRA LOS DATOS QUE ESTAMOS PROMEDIANDO.
+
+Definimos una función que toma como input la altura de la madre por la que queremos promediar y el tamaño deseado de la ventana.
+
+```{r}
+promedio_madre_ventana=function(altura_mama,filtro){
+  mean(altura[altura_mama-filtro <= altura_madre & altura_madre <= altura_mama+filtro])
+}
+```
+
+\clearpage
+
+## Tarea 3
+
+### 9
+
+```{r}
+promedio_madre_ventana(156,3)
+```
+
+\clearpage
+
+## Tarea 4
+
+### 10
+
+```{r}
+promedio_madre_ventana(157,1)
+promedio_madre_ventana(157,3)
+```
+
+\clearpage
+
+### 11
+
+```{r}
+promedio_madre_ventana(160,1)
+promedio_madre_ventana(160,3)
+```
+

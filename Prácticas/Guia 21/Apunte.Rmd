@@ -1,0 +1,40 @@
+---
+title: "Apunte"
+author: "Agustin Muñoz González"
+date: "1/7/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+OBS: Sean $X_1,\dots,X_n\sim X_i\sim \mathcal{N}(0,1)$ y sea $z_{\beta}$ tq $P(Z>z_{\beta})=\beta$ es decir $z_{\beta}=\phi^{-1}(1-\beta)=qnorm(1-\beta)$.
+
+Pivot es una cuenta que uno hace con la muestra y con el parametro de interes y la distribucion resultante es conocida. Como la dist es conocida sabemos entre quienes hay que encerrar a nuestro parametro a estimar para que tenga la proba que queremos nostros, en este caso el pivote es la estandarizacion de la normal:
+
+$$pivot=\frac{\overline{\mu}_n-\mu}{\sqrt{\frac{\sigma_0^2}{n}}}$$
+
+Supongamos que $\sigma=\sigma_0$ conocido, entonces 
+$$P(-z_{\alpha/2}<\frac{\overline{\mu}_n-\mu}{\sqrt{\frac{\sigma_0^2}{n}}}<z_{\alpha/2})=1-\alpha$$ 
+despejando mu nos queda
+$$P(\overline{\mu}_n-z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}<\mu<\overline{\mu}_n+z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}})=1-\alpha$$
+
+Entonces $a(X_1,\dots,X_n)=\overline{\mu}_n-z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ y $b(X_1,\dots,X_n)=\overline{\mu}_n+z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ son los bordes del intervalo de confianza $1-\alpha$ cuando $X_i\sim \mathcal{N}(0,1)$ y conocemos $\sigma_0$.
+
+-La longitud del intervalor es $2*z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$.
+
+-Entonces a mayor n menor longitud.
+
+-Si $1-\alpha$ aumenta $z_{\alpha}$ aumenta y entonces el intervalo crece, o sea si queres mas chances de atrapar el parametro te tengo que dar un intervalo mas grande.
+
+-A mayor $\sigma_0$ mayor longitud, o sea el intervalo hereda la precision de la estimacion inicial.
+
+Si en vez de trabajar con $\sigma_0$ trabajar con su estimador $S$ pagamos el precio de cambiar la $Z\sim\mathcal{N}(0,1)$ por la t de student:
+$a(X_1,\dots,X_n)=\overline{\mu}_n-t_{n-1,\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ y $b(X_1,\dots,X_n)=\overline{\mu}_n+t_{n-1,\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$
+con $t_{n-1,\alpha/2}=qt(1-\alpha/2,n-1)$.
+
+
+O sea $\sigma$ conocida es mundo normal, $\sigma$ desconocida es mundo t de student.
+
+- Propagación de errores es el error cuando estamos estimando $f(\theta)$. O sea cuando aproximas $\theta$ tenes un error, que es la parte $\frac{S}{\sqrt{n}}$, propagación de errores es el error que obtenemos cuando aproximamos $f(\theta)$ y basicamente aparece la derivada de f evaluada en el estimador (porque hacemos Taylor de orden 1).

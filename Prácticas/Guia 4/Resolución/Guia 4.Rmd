@@ -1,0 +1,325 @@
+---
+title: "Guia 4"
+author: "Agustin Muñoz Gonzalez"
+date: "29/4/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparamos el entorno.
+
+Limpiamos los registros y seteamos el directorio de trabajo.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+# Sobre monedas.
+
+## Ejercicio 1
+### Item a)
+
+Definimos una función que devuelva el lanzamiento al azar de una moneda equilibrada, con 1=cara, 0=ceca.
+
+```{r}
+cara_ceca=function(){
+  sample(c(0,1),1)
+}
+```
+
+Como lo que queremos es una función que simule un lanzamiento, no hace falta definir ningún input para la función.
+
+### Item b)
+
+Como la moneda es equilibrada en N_rep lanzamientos esperaría obtener N_rep/2 caras.
+
+### Item c)
+
+Veamos si esto efectivamente ocurre. Definimos primero una función que simule N_rep lanzamientos
+```{r}
+n_lanzamientos=function(N_rep){
+  resultado=c()
+  for(i in (1:N_rep)){
+    resultado=c(resultado,cara_ceca())
+  }
+  resultado
+}
+```
+
+Veamos cuántos 1 obtenemos en el resultado de 1000 lanzamientos.
+
+```{r}
+muchas_repeticiones=n_lanzamientos(1000)
+frecuencia=length(which(muchas_repeticiones==1))
+frecuencia
+frecuencia_relativa=frecuencia/1000
+frecuencia_relativa
+```
+
+Ahora veamos cuántos 1 obtenemos en varios experimentos de 1000 lanzamientos. Hagamos 10 lanzamientos y veamos qué obtenemos.
+
+```{r}
+caras_obtenidas=c()
+for (i in (1:10)){
+  x=n_lanzamientos(1000)
+  caras_obtenidas=c(caras_obtenidas,length(which(x==1)))
+}
+caras_obtenidas
+```
+
+Si bien no obtuvimos exactamente 500, rondamos ese valor en cada experimento.
+
+\clearpage
+
+## Ejercicio 2
+### Item a)
+
+Es nuestra función n_lanzamientos() del item c) del ejercicio anterior.
+
+### Item b)
+
+Es nuestra función caras_obtenidas() del item c) del ejercicio anterior.
+
+\clearpage
+
+## Ejercicio 3
+
+### Item a)
+
+```{r}
+perseverancia_cara=function(){
+  N_rep=1
+  while (cara_ceca()!= 1) {
+    N_rep=N_rep+1
+  }
+  N_rep
+}
+```
+
+Como la función simula lanzamientos, no precisa ningún input.
+
+Podriamos modificarla un poco para que el input que toma sea cara o ceca según que perserverancia estamos buscando. Digamos
+
+```{r}
+perseverancia=function(lado_moneda){
+  N_rep=1
+  while (cara_ceca()!= lado_moneda) {
+    N_rep=N_rep+1
+  }
+  N_rep
+}
+```
+
+### Item b)
+
+No entiendo qué hay que hacer, la función perseverancia (que igual no existe, existe perseverancia_cara) devuelve una cantidad de lanzamientos entonces no sé que sería ejecutar perseverancia a lo largo de 1000 repeticiones, o sea tengo que ejecutar perseverancia 1000 veces? Es confuso que llame N_rep a estas repeticiones porque N_rep antes lo usamos para cantidad de lanzamientos pero acá pareciera (si entendí bien) cantidad de repeticiones de la función. Vamos a resolver eso, ejecutar 1000 veces la función perserverancia cara. Más aún, vamos a definir como antes una función para ejecutar n veces esta perseverancia
+
+```{r}
+n_perseverancia_cara=function(n){
+  resultado=c()
+  for(i in (1:n)){
+    resultado=c(resultado,perseverancia_cara())
+  }
+  resultado
+}
+```
+
+Como entiendo bien el ejercicio no sé respecto de qué cantidad tengo que dividir para calcular la frecuencia relativa. 
+
+Algo que podríamos hacer (pero no lo voy a hacer) es modificar la función perserverancia_cara para que nos devuelva la perseverancia de cara propiamente dicho y también la cantidad total de lanzamientos que se realizaron en ese ejecución de la función y la frecuencia relativa seria la perseverancia/lanzamientos_totales.
+
+Sólo voy a calcular el promedio del resultado de n_perseverancia_cara(1000)
+
+```{r}
+promedio=sum(n_perseverancia_cara(1000))/1000
+promedio
+```
+
+# Éxitos y fracasos.
+
+El comando \textit{runif(n,min,max)} devuelve n desviaciones aleatorias de una distribución uniforme en el intervalo [min,max]. O sea n muestras aleatorias de valores en [min,max].
+
+\clearpage
+
+## Ejercicio 4
+### Item a)
+
+```{r}
+exito_fracaso=function(p){
+  as.integer(runif(1) >= 1-p)
+}
+```
+
+Otra forma
+```{r}
+exito_fracaso_2=function(p){
+  as.integer(runif(1) <= p)
+}
+```
+
+Digamos, la idea es que el runif(1) caiga en el intervalo [0,p], con lo cual es mas intuitivo tal vez pedir que la muestra aleatoria uniforme en el [0,1] sea menor o igual a p (aunque es lo mismo que pedir que sea mayor a 1-p, por eso las dos formas).
+
+Otra forma es usar sample()
+```{r}
+exito_fracaso_3=function(p){
+  as.integer(sample(c(0,1),1,prob=c(1-p,p)) == 1)
+}
+```
+### Item b)
+
+La frecuencia dependerá de p. Si p=0.5 entonces en N_rep experimentos esperaría obtener N_rep/2 éxitos. En general, esperaría obtener p*N_rep éxitos.
+
+### Item c)
+
+Definimos primero una función que simula N_rep experimentos exito_fracaso(p) y devuelve un vector con los resultados obtenidos, con lo cual precisa dos inputs: N_rep y p.
+
+```{r}
+n_experimentos=function(N_rep,p){
+  for (i in (1:N_rep)){
+    resultado_bis=c()
+    resultado_bis=c(resultado_bis,exito_fracaso(p))
+  }
+  resultado_bis
+}
+```
+
+Ahora simulamos N_rep=1000 experimentos exito_fracaso(0.8) y guardamos las observaciones.
+
+```{r}
+muchas_repeticiones_bis=n_experimentos(1000,0.8)
+```
+
+Calculemos la frecuencia y frecuencia relativa del éxito
+
+```{r}
+frec_exito=length(which(muchas_repeticiones_bis==1))
+frec_exito
+frec_rel_exito=frec_exito/1000
+frec_rel_exito
+```
+
+\clearpage
+
+## Ejercicio 5
+### Item a)
+
+Es nuestra función n_experimentos(n,p) del item c) del ejercicio anterior.
+
+# Item b)
+
+```{r}
+cuantos_exitos=function(N_rep,p){
+  x=n_experimentos(N_rep,p)
+  length(which(x==1))
+}
+```
+
+\clearpage
+
+## Ejercicio 6
+### Item a)
+
+Definimos una función que devuelve la cantidad N_rep de experimentos necesarios hasta obtener el primer éxito
+
+```{r}
+perseverancia_exito=function(p){
+  N_rep=1
+  while(exito_fracaso(p)!=1){
+    N_rep=N_rep+1
+  }
+  N_rep
+}
+```
+
+Como el experimento depende de la probabilidad p, esa probabilidad debe ser ingresada como input de la función.
+
+### Item b)
+
+En primer lugar definimos una función que devuelve el vector de resultados de n ejecuciones de la función perserverancia_exito(p). 
+
+```{r}
+n_perseverancia_exito=function(n,p){
+  resultado=c()
+  for(i in (1:n)){
+  resultado=c(resultado,perseverancia_exito(p))
+  }
+  resultado
+}
+```
+
+Ejecutamos la función perseverancia_exito 1000 veces para p=0.8. Esto es aplicar n_perseverancia_exito(1000,0.8)
+
+```{r}
+muchas_perseverancia_exito=n_perseverancia_exito(1000,0.8)
+```
+
+Calculemos la frecuencia relativa a cada valor (contado con repeticiones) de muchas_perseverancias. Devolvemos el resultado como un vector de listas donde el nombre de cada lista es el número i de la iteración, es decir el valor que toma cada componente de muchas_perseverancias.
+
+```{r}
+aux=c()
+for(i in muchas_perseverancia_exito){
+  aux=c(aux,list(i=sum(muchas_perseverancia_exito==i)/1000))
+}
+frec_muchas_perseverancia_exito=unique(aux)
+frec_muchas_perseverancia_exito
+```
+
+Por último calculamos el promedio de muchas_perseverancias.
+
+```{r}
+promedio_muchas_perseverancia_exito=sum(muchas_perseverancia_exito)/1000
+promedio_muchas_perseverancia_exito
+```
+### Item c)
+
+Repetimos el item anterior para la grilla siguiente
+
+```{r}
+grilla=seq(0.01,0.99,by=0.02)
+```
+
+De nuevo, devolvemos un vector de listas donde el nombre de cada lista es la probabilidad respecto de la cual estamos realizando los 1000 experimentos y cuyo valor son los 1000 experimentos. 
+
+```{r}
+resultado_grilla=c()
+for (i in grilla){
+  resultado_grilla=c(resultado_grilla,list(n_perseverancia_exito(1000,i)))
+}
+names(resultado_grilla)=paste('p=',grilla)
+resultado_grilla
+```
+
+
+Graficamos p vs el promedio de n_perseverancia_exito(1000,p). Definimos una función para calcular el promedio de la función n_perseverancia_exito(1000,-) y de paso nos sirve para poder usar el comando lapply a la grilla.
+
+```{r}
+promedio_1000_ejecuciones=function(p){
+  x=n_perseverancia_exito(1000,p)
+  sum(x)/1000
+}
+y=lapply(grilla,promedio_1000_ejecuciones)
+plot(grilla,y,xlab='Probabilidades',
+     ylab='Perseverancia éxito')
+abline(h=1,v=0,col='red')
+```
+
+Vemos que tiene una forma asintótica. Siendo un poco más formales podemos decir que cuando p tiende a 0 la perseverancia tiende a infinito, lo cual es intuitivo ya que si p=0 nunca vamos a obtener un éxito y por tanto vamos a repetir el experimento infinitas veces. Análogamente si p tiende a 1 la perserverancia tiende a 1, de hecho cuando p ES 1 la perseverancia ES 1, porque si la probabilidad de que el experimento sea exitoso es 1 entonces al primer intento obtendremos un éxito.
+
+Proponemos la función $f(x)=\frac{1}{x},x>0$. Grafiquemos esta curva superpuesta con el gráfico anterior. Primero definamos la función f y la imágen de la grilla vía f
+
+```{r}
+f=function(x){1/x}
+f_grilla=lapply(grilla,f)
+```
+
+Grafiquemos
+
+```{r}
+plot(grilla,y,xlab='Probabilidades',
+     ylab='Perseverancia éxito')
+abline(h=1,v=0,col='red')
+lines(grilla,f_grilla,col='blue')
+```

@@ -1,0 +1,81 @@
+---
+title: "Clase 9"
+author: "Agustin Muñoz Gonzalez"
+date: "13/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparamos el entorno.
+
+Limpiamos los registros.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+## 1. Leer el archivo e identificar las variables guardadas.
+
+```{r}
+kerrich=read.csv('Kerrich.csv',header = T)
+attach(kerrich)
+names(kerrich)
+```
+
+## 2. Dividir en dos secuencias de tamaño 1000 (primeros y segundos 1000) y calcular los promedios que obtuvo Kerrich para los n dados arriba y para cada una de las dos secuencias. Registrar en este archivo compartido los valores obtenidos para la segunda secuencia para n =10,100,500,1000. Comparar con los valores que obtuvo Kerrich.
+
+```{r}
+sec_1=kerrich$kerrich[seq(1,1000)]
+sec_2=kerrich$kerrich[seq(1001,2000)]
+promedio=function(secuencia,n){
+  mean(secuencia[1:n])
+}
+enes=c(seq(1,30),seq(35,95,5),seq(100,190),seq(200,1000,50))
+promedios_sec_1=promedios_sec_2=c()
+for(i in enes){
+  promedios_sec_1=c(promedios_sec_1,promedio(sec_1,i))
+  promedios_sec_2=c(promedios_sec_2,promedio(sec_2,i))
+}
+```
+
+## 3. Graficar en un mismo plot n (en eje x) y los promedios (en eje y) obtenidos con cada secuencia utilizando distinto color. ¿Qué observa?
+
+Ploteamos
+
+```{r}
+plot(enes,promedios_sec_1,col='red',
+     main='Agustin Muñoz G', xlab='Lanzamientos', 
+     ylab='Promedios',pch=20)
+points(enes,promedios_sec_2,
+       col='blue',pch=20)
+legend("bottomright",
+c("sec 1","sec 2"),
+fill=c("red","blue")
+)
+```
+
+## 4. Repetir el item anterior para 1 <= n <= 1000.
+
+Ploteamos
+
+```{r}
+grilla=seq(1,1000)
+promedio_completo_sec_1=promedio_completo_sec_2=c()
+for(i in grilla){
+  promedio_completo_sec_1=c(promedio_completo_sec_1,promedio(sec_1,i))
+  promedio_completo_sec_2=c(promedio_completo_sec_2,promedio(sec_2,i))
+}
+plot(grilla,promedio_completo_sec_1,col='red',
+     main='Agustin Muñoz G', xlab='Lanzamientos', 
+     ylab='Promedios',pch=20,type='l')
+points(grilla,promedio_completo_sec_2,
+       col='blue',pch=20,type='l')
+legend("bottomright",
+c("sec 1","sec 2"),
+fill=c("red","blue")
+)
+```
+

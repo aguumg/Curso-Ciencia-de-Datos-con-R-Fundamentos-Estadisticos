@@ -1,0 +1,156 @@
+---
+title: "Grafico animado"
+author: "Agustín Muñoz González"
+date: "14/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Acá va el codigo del gif
+#ADVERTENCIAS:
+
+#Requiere instalar un par de paquetes, 'gganimate' y los que pida al ejecutar el codigo
+
+#No se en Windows o iOS, pero en Linux el R me pidió paquetes faltantes en el sistema,
+#pero te avisa cuales son
+
+#Tiró unos errores al instalar pero son faciles de solucionar instalando unas cositas en
+#Linux, si no las encuentran se las paso
+
+#Es recomendable abrir RStudio como superusuario porque el codigo usa archivos temporales
+#para renderizar y necesita el permiso para acceder a ellos
+
+#El codigo se puede mejorar mucho
+
+```{r}
+rm(list = ls())
+```
+
+
+
+#FUNCIONES
+
+#Calcula suma y promedio dados n y Nrep
+
+```{r}
+sumaYprom<-function(Nrep,n){
+ p<-vector()
+ s<-vector()
+ for(i in 1:Nrep){
+   muestra<-rnorm(n,5,4)
+   p<-c(p,mean(muestra))
+   s<-c(s,sum(muestra))
+ }
+ d<-list()
+ d[[1]]<-p
+ d[[2]]<-s
+ return(d)
+}
+```
+
+#Genera dataframe con los promedio o las sumas, segun el valor de modo (1 es promedios y 2 es sumas)
+```{r}
+paraAnim<-function(enes,Nrep,modo){
+ y<-list()
+ for (i in 1:length(enes)) {
+   y[[i]]<-sumaYprom(Nrep,enes[i])[[modo]]
+   y[[i]]<-as.matrix(y[[i]],nrows=Nrep, ncols=1)
+   y[[i]]<-as.data.frame(y[[i]])
+   colnames(y[[i]])<-'sumas'
+ }
+ y<-as.data.frame(y)
+ return(y)
+}
+```
+
+
+
+#INPUTS: modo=1 es para promedios y modo=2 para sumas
+```{r}
+enes<-c(1,2,5,10,25)
+Nrep<-1000
+modo<-1
+```
+
+
+
+#DATOS: preparandolas para poder graficar con 'gganimate'
+```{r}
+if (modo==1){
+ etiqueta<-'Promedio'
+}else if (modo==2){
+ etiqueta<-'Suma'
+}else{
+ print('Modo inexistente')
+}
+datitos<-paraAnim(enes,Nrep,modo)
+medias<-colMeans(datitos, na.rm = FALSE, dims = 1)
+desvis<-sapply(datitos, sd, na.rm = TRUE)
+z<-stack(datitos)[1]
+colnames(z)<-'promedios'
+e<-vector()
+t<-vector()
+m<-vector()
+des<-vector()
+for (i in 1:length(enes)){
+ e<-c(e,rep(i,Nrep))
+ t<-c(t,rep(enes[i],Nrep))
+ m<-c(m,rep(medias[i],Nrep))
+ des<-c(des,rep(desvis[i],Nrep))
+}
+t<-as.integer(t)
+z$estados<-e
+z$titulo<-t
+z$media<-m
+z$desvi<-des
+```
+
+
+
+#GRAFICADOR
+```{r}
+library(ggplot2)
+library(gganimate)
+anim <- z %>%
+   filter(estados >= 1) %>%
+   ggplot(aes(frame=titulo))+
+   geom_histogram(aes(x=promedios,y=stat(count)/Nrep),
+                  colour ='blue',fill='gray',binwidth=1 )+
+   transition_states(estados, transition_length = 1, state_length = 1)
+# Con transition_states le decimos que parámetro que ir variando
+# y con transition_length = 1, state_length = 1 le decimos que varíe 1
+animate(anim,
+        width = 400, height = 400,
+        nframes = 480, fps = 24)
+anim_save("progresion normal.gif", anim)
+```
+
+Para el punto 2:
+```{r}
+Nrep<-1000
+inferior<-0
+superior<-2
+muest<-runif(Nrep, inferior,superior)
+set.seed(7649)
+muest2<-runif(Nrep, inferior,superior)
+proms<-vector()
+proms2<-vector()
+for (n in 1:Nrep) {
+ proms<-c(proms,mean(muest[1:n]))
+ proms2<-c(proms2,mean(muest2[1:n]))
+}
+
+dats<-data.frame(enes=seq(1,Nrep,1),promedios=proms,promedios2=proms2)
+g2<-ggplot(data=dats)+
+   geom_point(aes(x=enes,y=promedios,group = seq_along(enes)),
+              colour='blue')+
+   geom_point(aes(x=enes,y=promedios2,group = seq_along(enes)),
+              colour='red')+
+   geom_hline(aes(yintercept=1), col='black')+
+   transition_reveal(enes)
+g2
+anim_save("promedios.gif", g2)
+```

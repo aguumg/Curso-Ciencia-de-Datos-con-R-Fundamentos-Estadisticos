@@ -1,0 +1,168 @@
+---
+title: "Guia 26"
+author: "Agustin Muñoz Gonzalez"
+date: "25/7/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparamos el entorno.
+
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(tidyr)
+library(gganimate)
+```
+
+*El objetivo de esta práctica es la implementación de reglas de clasificación teniendo en
+cuenta la selección de los parámetros de suavizado.*
+
+En un bosque de Bariloche hay dos variedades de hongos, que identificaremos como la
+variedad I y variedad II. En el archivo hongos clasificados.txt encontrará n = 500 registros
+correspondientes a la altura y variedad de cada uno los hongos examinados. A fin de clasificar un nuevo hongo de este bosque, implementaremos la regla de Bayes, pero sin suponer que las densidades condicionales involucradas en su cálculo pertenecen a una familia determinada.
+
+\underline{Preliminar}
+
+Separamos un 10% de los datos elegidos al azar.
+
+```{r}
+hongos=read.delim('hongos_clasificados.txt', header = TRUE, sep = " ", dec = ".")
+indices=sample(length(hongos$Height),size=0.2*length(hongos$Height))
+test_set=hongos[indices,]
+training_set=hongos[-indices,]
+```
+
+En lo que sigue, llamaremos $f_1$ a la densidad de la altura de un hongo de la variedad I y $f_0$ a la densidad de la altura de un hongo de la variedad II.
+
+1. A partir de los alturas medidas en los hongos de variedad I estime la función de densidad
+$f_1$ . Indique cómo determió la ventana y que núcleo usó. Llamemos $\widehat{f}_{1,h_1}$ a la estimación resultante de la función de densidad $f_1$.
+
+\underline{Resolución:}
+
+Como estamos suponiendo que $f_1$ no pertenece a ninguna familia determinada, vamos a hacer una estimación no paramétrica. 
+
+Veamos en primer lugar un histograma la variedad 1 de los hongos para ver si a simple vista se observa alguna densidad conocida.
+
+```{r}
+hongos_1=hongos[hongos$Variety==1,]
+hongos_1 %>% 
+  ggplot()+
+  geom_histogram(aes(x=Height,y=..density..),col='black')
+```
+
+Observamos que se parece mucho a la densidad normal. 
+
+Pero como por ahora no tenemos que suponer nada y como tenemos muchos datos procedemos a usar la estimación no parámetrica de la densidad dada por el estimador de Nadaraya-Watson con núcleo gaussiano.
+
+Donde la ventana la vamos a elegir por el método de Convalidación Cruzada para una grilla [h_S-a,h_S+b] con h_S la ventana de Silverman, y con a,b coherentes con el rango de las alturas de hongos_1.
+
+Importo las funciones necesarias de las practicas 24 y 25.
+
+```{r}
+# Definamos primero una función estimadora usando ksmooth=gauss
+f_sombrero=function(x,X,Y,h){
+  f=approxfun(ksmooth(X, Y, kernel='normal',bandwidth=h))
+  f(x)
+}
+################################################
+# Defino ahora la función CV(h) Pérdida de Convalidación Cruzada
+CV=function(h,X,Y){
+  estimaciones_sin_i=c()
+  for(i in 1:length(X)){
+    x_i=X[i]
+    estimaciones_sin_i=c(estimaciones_sin_i,f_sombrero(X[i],X[-i],Y[-i],h))
+  }
+  # le saco la primera y ultima coord porque son NA
+  #estimaciones_sin_i=estimaciones_sin_i[-1][-length(X)+1]
+  # para calcular la media tambien le saco esas coordenadas a datos$logratio
+  mean((Y-estimaciones_sin_i)^2)
+}
+#######################################################
+# Por último defino la función h_CV que devuelve la ventana de Convalidación Cruzada.
+h_CV=function(X,Y,valores_h){
+  vect_to_min=sapply(valores_h,CV,X,Y)
+  valores_h[which.min(vect_to_min)]
+}
+```
+
+Para saber alrededor de qué número buscar la ventana CV calculemos el h_SIL
+```{r}
+h_S=1.06*min(sd(hongos_1_training$Height),IQR(hongos_1_training$Height)/1.349)/(length(hongos_1_training$Height)^(1/5))
+h_S
+```
+Además como el rango de los datos es
+```{r}
+range(hongos_1_training$Height)
+```
+Entonces propongo recorrer con h_CV el conjunto de ventanas ventanas_h=seq(h_S-0.3,h_S+5,0.1).
+```{r}
+ventanas_h=seq(h_S-0.3,h_S+5,0.1)
+h_CV(hongos_1_training$Height,hongos_1_training$Variety,valores_h=ventanas_h)
+```
+CV ME TIRA NA XQ F_SOMBRERO TIRA NA PARA ALGUNOS VALORES DE H ¿?
+
+
+2. A partir de los alturas medidas en los hongos de variedad II estime la función de
+densidad $f_0$ . Indique cómo determinó la ventana y que núcleo usó. Llamemos $\widehat{f}_{0,h_0}$ a la estimación resultante de la función de densidad $f_0$.
+
+\underline{Resolución:}
+
+```{r}
+hongos_2_training %>% 
+  ggplot()+
+  geom_histogram(aes(x=Height,y=..density..),col='black')
+hongos_2_training=training_set[training_set$Variety==2,]
+```
+
+
+3. Implemente una función **class.est.variedad** que determine la variedad de un hongo
+mediante la regla plug–in de Bayes $\widehat{g}$ basada en las estimaciones $\widehat{f}_{1,h_1}$ y $\widehat{f}_{0,h_0}$ ya obtenidas en los dos ítems anteriores y las proporciones de cada variedad en los datos registrados en el archivo hongos_clasificados.txt.
+
+\underline{Resolución:}
+
+Usar la idea de la funcion siguiente de la entrega 4. DEFINIR f_0_h_0 y f_1_h_1
+
+```{r}
+proporcion_uno=mean(training_set$Variety==1)
+proporcion_dos=mean(training_set$Variety==2)
+class.est.variedad=function(hongo){
+  ifelse(f_1_h_1(hongo)*proporcion_uno>f_0_h_0(hongo)*proporcion_2,1,2)
+}
+```
+
+
+4. Calcule el Error de Clasificación Empírico de $\widehat{g}$ utilizando los datos del archivo hongos_clasificados.txt.
+
+\underline{Resolución:}
+
+```{r}
+clasificados=class.est.variedad(hongos$Height)
+error=mean(clasificados!=hongos$Variety)
+```
+
+
+5. ¿Le parece que las ventanas halladas en a) y b) con las que implementó la regla de clasificación son las más adecuadas a los fines de la clasificación?
+
+Implemente una función **class.optim.est.variedad** que determine la variedad de un hongo mediante la regla plug–in de Bayes $\widehat{g}$ basada en las estimaciones $\widehat{f}_{1,h_1}$ y $\widehat{f}_{0,h_0}$ y las proporciones de cada variedad en los datos registrados en el archivo hongos_clasificados.txt en la que las ventanas se determinan simultáneamente por Convalización Cruzada.
+
+\underline{Resolución:}
+
+ES COMO LO QUE HICIMOS EN 1 Y 2 SOLO QUE AHORA BUSCO LAS H_0 H_1 SIMULT USANDO CV PERO AHORA LA FUNCION OBJETIVO A MINIMIZAR NO ES LA LOG LIKELIHOOD SINO EL ERROR DE CLASIFICACIÓN (QUIERO MEJORAR EL CLASIFICADOR)
+
+6. Estime el Error de Clasificación de la regla de plug–in Bayes $\widehat{g}$ mediante el Error de Clasificación Empírico utilizando los datos del archivo hongos clasificados.txt, pero ahora implemente la regla asumiendo que las densidades $f_1$ y $f_0$ son normales y que
+desconoce sus parámetros. Compare con los resultados anteriores.
+
+\underline{Resolución:}
+
+USAR LA VENTANA DE SILVERMAN PARA BUSCAR LA CONVALIDACION CRUZADA ALREDEDOR DE ESE VALOR
+
+EN LA CROSS VALIDATION TAMBIEN LE TENGO QUE SACAR EL I-ESIMO PARA CALCULAR LAS PROPORCIONES DE 1 Y 2.
+
+7. **Para entregar**: Implemente una función **class.nopar** que dado un punto $x_{new}$ determine la clase a la que pertenece el nuevo individuo que tiene este valor en la covariable mediante la regla plug–in de Bayes $\widehat{g}$ basada en las estimaciones no paramétricas de las densidades $f_1$ y $f_0$ usando núcleo gaussiano. Para ello entrar como input de la función implementada el punto $x_{new}$, los vectores de datos $X_{datos}$ e $Y_{datos}$ y las ventanas $h_1$ y $h_0$ : class.nopar($x_{new}$, $X_{datos}$, $Y_{datos}$, $h_1$, $h_0$).
+
+\underline{Resolución:}
+

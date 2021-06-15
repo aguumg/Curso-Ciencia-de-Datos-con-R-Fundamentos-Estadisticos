@@ -1,0 +1,86 @@
+---
+title: "Guia 20 clase"
+author: "Agustin Muñoz González"
+date: "29/6/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparamos el entorno.
+
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(tidyr)
+library(gganimate)
+```
+
+
+1.
+a.
+```{r}
+datos=read.csv('lamparas.csv',header=T)
+ggplot(datos)+
+  geom_histogram(aes(x=lamparas,y=stat(count)/dim(datos)[1]),
+                 color='blue', fill='grey')+
+  geom_density(aes(x=lamparas))
+```
+
+b.
+Estimamos $\mathbb{E}(T)$.
+
+```{r}
+mean(datos$lamparas)
+```
+
+Medimos el error de estimación $se=\frac{S}{\sqrt{n}}$ donde S es una estimación de la varianza.
+
+```{r}
+se=sd(datos$lamparas)/sqrt(length(datos$lamparas))
+se
+```
+
+Estimamos entonces que la media de la población es $9.54\pm 0.947$.
+
+c.
+```{r}
+quantile(datos$lamparas,0.5)
+median(datos$lamparas)
+```
+
+2. Obtenga el error de estimación bootstrap correspondiente a la media y a la mediana
+calculadas. Comparar con los errores previamente obtenidos.
+
+\underline{Resolución:}
+
+Para eso generamos Nrep=100 muestras por bootstrap.
+
+```{r}
+library(rsample)
+computos_boot=bootstraps(datos,times=100)
+primeros_computos=as.data.frame(computos_boot$splits[[1]])
+```
+
+Calculemos ahora la media y mediana muestrales de cada una de las muestras generadas.
+
+```{r}
+medias=medianas=c()
+for(i in 1:length(computos_boot$splits)){
+  datos=as.data.frame(computos_boot$splits[[i]])
+  medias=c(medias,mean(datos$lamparas))
+  medianas=c(medianas,median(datos$lamparas))
+}
+```
+
+Tomamos finalmente como error de estimación a la desviación estandar de las medias y las medianas calculadas.
+
+```{r}
+se_media_bootstrap=sd(medias)
+se_media_bootstrap
+se_mediana_bootstrap=sd(medianas)
+se_mediana_bootstrap
+```
+

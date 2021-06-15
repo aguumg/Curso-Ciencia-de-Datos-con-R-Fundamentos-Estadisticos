@@ -1,0 +1,57 @@
+---
+title: "Clase 9 Ejercicios 1 y 2"
+author: "Agustin Muñoz Gonzalez"
+date: "18/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+## Ejercicio 1
+
+## Dada la función de probabilidad puntual dada por la tabla siguiente
+
+```{r}
+proba_puntual_1=data.frame('valor_1'=c(-1,1,4,5,7,10),'probabilidad_1'=c(2/24,6/24,4/24,1/24,7/24,4/24))
+attach(proba_puntual_1)
+```
+
+OJO! PARA MANEJARNOS CON proba_puntual_1[valor_1==algo,] TENEMOS QUE ATTACHAR. SINO HAY QUE HACER proba_puntual_1[proba_puntual_1$valor_1==algo,].
+
+## Implemente una funcion pejemplo_1 que tenga por input t y devuelva F_X (t), cuando X es la variable con puntual dada en la tabla. 
+
+```{r}
+pejemplo_1=function(t){
+  sum(probabilidad_1[valor_1<= t])
+}
+```
+
+
+## Grafique F_X , para t en (-2, 11), utilizando una grilla de paso 0.01
+
+\clearpage
+
+## Ejercicio 2
+
+## Dada la función de probabilidad puntual dada por la tabla siguiente
+
+```{r}
+proba_puntual_2=data.frame('valor_2'=c(-1.3,1.8,4.2,5.5,7.4,10.3),'probabilidad_2'=c(1/6,1/6,1/6,1/6,1/6,1/6))
+attach(proba_puntual_2)
+```
+
+## Implemente una funcion pejemplo_2 que tenga por input t y devuelva F_Y (t), cuando Y es la variable con puntual dada en la tabla.
+
+```{r}
+pejemplo_2=function(t){
+  sum(probabilidad_2[valor_2<= t])
+}
+```
+
+## Grafique F_Y , para t en (-2, 11), utilizando una grilla de paso 0.01.

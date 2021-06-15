@@ -1,0 +1,237 @@
+---
+title: "Guia 7"
+author: "Agustin Muñoz Gonzalez"
+date: "6/5/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparamos el entorno.
+
+Limpiamos los registros.
+
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+# 1 Calentando motores
+
+### 1 Descargar de esta página un conjunto de n = 500 observaciones, con todas las variables y leer el archivo en R.
+
+```{r}
+alturas=read.csv('alturas_n_500.csv',header = T)
+attach(alturas)
+```
+
+
+### 2. Identificar el nombre de las columnas del data.frame.
+
+```{r}
+names(alturas)
+```
+
+
+
+### 3. Calcular el promedio de las alturas de los hijes para predecir la altura de un nuevo individuo.
+
+```{r}
+promedio_total=mean(altura)
+```
+
+
+### 4. Realizar un histograma de las alturas de les hijes. ¿Cuántas modas se observan? ¿A qué se puede atribuir?
+
+```{r}
+hist(altura,freq=F,main="Histograma de densidad",
+     nclass=15, col="red",xlab="Alturas hijos")
+```
+
+Calculemos la moda.
+
+```{r}
+aux=c()
+for(i in unique(sort(altura))){
+  aux=c(aux, sum(altura==i))
+}
+frecuencias=data.frame('alturas'=unique(sort(altura)),'frecuencias'=aux)
+moda=frecuencias$altura[frecuencias$frecuencias==max(frecuencias$frecuencias)]
+moda
+```
+
+Tenemos entonces 2 modas. Se le puede atribuir al hecho de que en general las mujeres miden menos que los hombres y por tanto es de esperar (si hay una cantidad similar de hombres y de mujeres) que haya una concentración de valores para la altura de las mujeres y una concentración de valores para la altura de los hombres.
+
+
+
+### 5. Explor el comanado plot(density(variable)), utilizando como variable la columna de alturas con las que se realizó el histograma. ¿Qué está pasando? ¿Cuántas modas observa? ¿A qué se puede atribuir? 
+
+
+```{r}
+plot(density(altura))
+```
+
+Grafiquemoslo superpuesto con el histograma para entender un poco mejor qué está pasando.
+
+```{r}
+hist(altura,freq=F,main="Histograma de densidad",
+     nclass=15, col="red",xlab="Alturas hijos")
+points(density(altura),type='l',col='blue')
+```
+
+Se puede observar el mismo fenómeno que en el Ejercicio anterior, se observan dos modas cercanas a los valores que mencionamos antes. Dado que la moda son los valores mas recurrentes, las densidades son mas altas en esos valores, con lo cual este fenómeno se lo atribuimos al mismo hecho que en el Ejercicio anterio.
+
+
+
+### 6. Realizar ahora un histograma de alturas por cada género. Es decir, un histograma para las alturas correspondientes al género Masculino y otro para las alturas correspondientes al género Femenino.
+
+
+```{r}
+par(mfrow=c(1,2))
+hist(altura[genero=='M'],freq=F,main="Histograma de densidad",
+     nclass=10, col="blue",xlab="Alturas hijos hombres")
+hist(altura[genero=='F'],freq=F,main="Histograma de densidad",
+     nclass=10, col="red",xlab="Alturas hijas mujeres")
+```
+
+
+
+### 7. Superponer en cada histograma del ítem anterior una función de densidad normal con los parámetros que consideres pertinentes.
+
+Vamos a superponer en cada histograma una función de densidad normal con la media y el desvío de los datos de la altura de los hombres y las mujeres respectivamente.
+
+```{r}
+media_M=mean(altura[genero=='M'])
+desvio_M=sd(altura[genero=='M'])
+grilla_M=seq(range(altura[genero=='M'])[1],
+              range(altura[genero=='M'])[2],length=100)
+funn_M=dnorm(grilla_M,media_M,desvio_M)
+
+media_F=mean(altura[genero=='F'])
+desvio_F=sd(altura[genero=='F'])
+grilla_F=seq(range(altura[genero=='F'])[1],
+              range(altura[genero=='F'])[2],length=100)
+funn_F=dnorm(grilla_F,media_F,desvio_F)
+
+par(mfrow=c(1,2))
+hist(altura[genero=='M'],freq=F,main="Histograma de densidad",
+     nclass=10, col="blue",xlab="Alturas hijos hombres")
+lines(grilla_M,funn_M,lwd=2)
+
+hist(altura[genero=='F'],freq=F,main="Histograma de densidad",
+     nclass=10, col="red",xlab="Alturas hijas mujeres")
+lines(grilla_F,funn_F,lwd=2)
+```
+
+
+
+### 8. Indicar con qué valor se puede predecir la altura de une hije Masculino, es decir, la altura de un hijo. Indicar con qué valor se puede predecir la altura de une hije Femenino, es decir, la altura de una hija.
+
+Con los promedios de las alturas de los hijos masculinos y femeninos respectivamente.
+
+```{r}
+promedio_M=mean(altura[genero=='M'])
+promedio_F=mean(altura[genero=='F'])
+```
+
+
+### 9. Indicar ahora con qué valor se puede predecir la altura de un hijo (Masculino), sabiendo además que su mamá es de contextura pequeña. Comparar el valor de la predicción con la predicción obtenida en el ítem anterior. ¿Qué se puede observar?
+
+Con el promedio de las alturas de los datos para genero=='M' y contextura_madre=='bajita'.
+
+```{r}
+promedio_M_bajita=mean(altura[genero=='M' & contextura_madre=='bajita'])
+promedio_M
+promedio_M_bajita
+```
+
+Observamos que cuando agregamos el filtro contextura_madre=='bajita' obtuvimos un promedio de altura mas bajo, lo cual tiene sentido.
+
+\clearpage
+
+# 2. Vamos a considerar ahora la altura de la mamá
+
+## 10. Graficar altura de mamá (en el eje x) vs. altura del hije (eje y), utilizando un color por cada género. ¿Qué se puede observar?
+
+```{r}
+plot(altura_madre,altura,type='n')
+points(altura_madre[genero=='M'],altura[genero=='M'],col='blue')
+points(altura_madre[genero=='F'],altura[genero=='F'],col='red')
+```
+
+Observamos que las mujeres miden menos.
+
+## 11. Indicar si hay alguna madre de hijo varón cuya altura sea 156 cm.
+
+Una forma es sumar todos los valores de verdad de altura_madre[genero=='M']==156 y si eso da más que 0, entonces sí existe tal madre.
+
+```{r}
+sum(altura_madre[genero=='M']==156)
+```
+
+## 12. Vamos ahora a predicir la altura de un hijo correspondiente a una mamá que mide x = 156 cm haciendo promedio móvil centrado en 156 con ventana de tamaño h =0.5 (cm).
+## a) Indicar cúantos casos hay donde la madre registra una altura entre 155.5 y 156.5 cm., inclusive.
+
+```{r}
+sum(155.5 <= altura_madre[genero=='M'] & altura_madre[genero=='M'] <= 156.5)
+```
+
+## b) Calcular el promedio de la altura de los hijos cuyas madres registran una altura entre 155.5 y 156.5 cm.
+
+```{r}
+mean(altura[155.5 <= altura_madre & altura_madre<= 156.5])
+```
+
+## 13. Promedio móvil centrado en 156 con ventana de tamaño h = 1 (cm).
+## a) Indicar cúantos casos hay donde la madre registra una altura entre 155 y 157 cm., inclusive.
+
+```{r}
+sum(155 <= altura_madre[genero=='M'] & altura_madre[genero=='M'] <= 157)
+```
+
+## b) Calcular el promedio de la altura de los hijos cuyas madres registran una altura entre 155 y 157 cm.
+
+```{r}
+mean(altura[155 <= altura_madre & altura_madre<= 157])
+```
+
+## 14. Repetir los items anteriores pero considerando ahora que la altura de la mamá es 159 cm. Es decir, nos movemos a calcular promedios en otro lado. Por eso hablamos de promedios móviles.
+
+Con ventana h=0.5
+```{r}
+sum(158.5 <= altura_madre[genero=='M'] & altura_madre[genero=='M'] <= 159.5)
+mean(altura[158.5 <= altura_madre & altura_madre<= 159.5])
+```
+
+Con ventana h=1
+
+```{r}
+sum(158 <= altura_madre[genero=='M'] & altura_madre[genero=='M'] <= 160)
+mean(altura[158 <= altura_madre & altura_madre<= 160])
+```
+
+\clearpage
+
+# 3. Implementando funciones
+
+## Hasta ahora hemos trabajado con dos posibles valores para la altura de la madre (156 y 159) y dos posibles valores de ventana (h =0.5 y h = 1). Vamos ahora a implementar una función que permita predecir la altura de un hijo en función de la altura de la madre y el tamaño h de ventana elegida para hacer el promedio móvil.
+
+## 15. Implemente una función que permita predecir la altura de un hijo en función de la altura de la madre, los datos para la altura de los individuos y de las madres y el tamaño h de ventana elegida para hacer el promedio móvil. Es decir, defina la función predigo altura masculino(altura, altura madre, altura mama nueva, h) 
+
+```{r}
+predigo_altura_genero=function(gen, altura, altura_mama, ventana){
+  mean(altura[genero == gen & altura_mama-ventana <= altura_madre & altura_madre <= altura_mama+ventana])
+}
+```
+
+## 16. Graficar la función predigo altura masculino, con h =0.5, evaluandola a lo largo de una una grilla sobre un intervalo que cubra todas las alturas observadas en las madres.
+
+```{r}
+grilla=seq(range(altura_madre)[1],range(altura_madre)[2],100)
+f_grilla=lapply(grilla,predigo_altura_genero(M,))
+plot(grilla,,type='n')
+points(altura_madre[genero=='M'],altura[genero=='M'],col='blue')
+points(altura_madre[genero=='F'],altura[genero=='F'],col='red')
+abline(v=seq(156-filtro,156+filtro,0.1),col='grey')
+```

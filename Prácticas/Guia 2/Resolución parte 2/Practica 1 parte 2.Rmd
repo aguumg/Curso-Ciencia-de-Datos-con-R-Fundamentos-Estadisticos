@@ -1,0 +1,310 @@
+---
+title: "Guia 1 parte 2"
+author: "Agustín Muñoz González"
+date: "26/4/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##### 1. Borrar todos los objetos existentes en el entorno de trabajo y establecer directorio de trabajo.
+
+Procedemos a limpiar los registros. HAY QUE SETEAR EL DIRECTORIO DE TRABAJO CON EL ARCHIVO TITANIC.
+```{r, results='hide', message=FALSE}
+rm(list=ls())
+```
+
+\clearpage
+
+##### 2. Leer el conjunto de titanic.csv teniendo en cuenta que en la primera línea del archivo figura el nombre de las variables y el tipo de separación de los datos y asignelo al data.frame titanic.
+
+Leemos el archivo y lo guardamos en la variable titanic.
+
+```{r}
+titanic=read.csv('titanic.csv', header=T)
+```
+
+\clearpage
+
+##### 3. Inspeccionar los primeros casos del archivo y los últimos.
+
+Recordemos que los comandos para leer los primeros y los últimos datos son \textit{head()} y \textit{tail()} respectivamente. Específicamente \textit{head()} devuelve los primeros 6 datos y \textit{tail()} los últimos 6.
+```{r}
+head(titanic)
+tail(titanic)
+```
+
+\clearpage
+
+##### 4. Abrir con el editor al data.frame e inspeccionar el archivo.
+
+Para esto usamos el comando \textit{data.frame()}. ¿Qué hace este comando? Según el comando \textit{help()}, el comando "Loads specified data sets, or list the available data sets." Guardamos el data.frame en una nueva variable 'tit'.
+```{r}
+tit=data.frame(titanic)
+```
+Notar que tit==titanic y son datos de la misma clase (adelantandonos un poco al item 7), con lo cual \textit{data.frame()} y \textit{read()} devuelven el mismo tipo de datos.
+
+\clearpage
+
+##### 5. Establecer el número de variables y de casos.
+
+El comando \textit{dim()} devuelve la cantidad de casos x la cantidad de variables del conjunto de datos que le ingresemos.
+
+```{r}
+dim(tit)
+```
+
+\clearpage
+
+##### 6. Realizar un attach de titanic.
+
+Attachamos la variable para que el manejo de los datos sea más práctico.
+```{r}
+attach(titanic)
+```
+
+\clearpage
+
+##### 7. Inspeccionar los nombres de las variables de titanic e identificar de qué tipo de variable se trata cada una de ellas.
+
+Para ver el nombre de las variables usamos el comando \textit{names()} o \textit{ls()}
+```{r}
+names(tit)
+ls(tit)
+```
+La diferencia, como vemos, es que \textit{ls()} devuelve ordenado alfabeticamente, es decir
+```{r}
+ls(tit)==sort(names(tit),decreasing = F)
+```
+
+Y para el tipo de variable usamos \textit{class()}. Para recorrer todas las variables usamos la sintaxis for.
+```{r}
+for (i in names(tit)){
+print(class(get(i)))
+}
+# Debemos usar el comando get() para obtener los datos de la variable de nombre i.
+# Digamos, si printeamos class(i) nos va a devolver "character".
+```
+
+El comando \textit{str()} aporta un poco mas de información sobre la variable, pues no sólo aporta su clase sino los niveles de la misma (las categorías si se trata de una variable de tipo Factor) y los valores que toma
+```{r}
+str(tit)
+```
+
+Este comando es mas útil en tanto que vemos si tiene sentido el tipo de clase de cada variable y, en caso que sea incorrecto o inadecuado, podemos cambiarlo. Por ejemplo, las variables 'pclass' y 'survived' que reflejan la clase de cabina de los pasajeros y si sobrevivieron o no (1=sobrevivir, 0=morir) respectivamente, dado que dividen el conjunto de datos en \underline{categorías} deberían ser de tipo Factor. Por otro lado, las variables 'name', 'age', 'ticket' y 'fare' son variables que aportan datos únicos para cada persona y no dividen el conjunto de datos en grupos. Con lo cual tiene mas sentido que sean variables de tipo numérico que de tipo categórico. En general, si los niveles de las variables (los valores que toma) son 'muchos' (relativo a los datos en general y a la cantidad de niveles de las demás variables categóricas) tiene mas sentido que sea numérica, caracter, etc., que categórica. 
+
+Procedemos a arreglar todas estas variables
+```{r}
+pclass=as.factor(pclass)
+survived=as.factor(survived)
+name=as.character(name)
+age=as.numeric(age)
+ticket=as.numeric(ticket)
+fare=as.numeric(fare)
+```
+
+\clearpage
+
+##### 8. Calcule la chance de sobrevivir siendo hombre. Calcule la chance de sobrevivir siendo mujer.
+
+Debemos calcular la proporción de supervivencia (o la tasa de mortalidad) de los hombres y las mujeres. Para eso filtraremos los datos de la variable 'survived' para hombres por un lado y para mujeres por otro.
+
+```{r}
+male_survived = tit[sex == 'male','survived']
+female_survived = tit[sex == 'female','survived']
+```
+
+Como los valores de 'survived' son 0 ó 1, calcular la media es calcular la proporción de supervivencia (equiv. 1-tasa de mortalidad). Mostramos de paso varios comandos para devolver por pantalla el dato junto con alguna frase
+
+```{r}
+cat('La proporción de supervivencia de los hombres es de ', mean(male_survived))
+cat('La proporción de supervivencia de los mujeres es de ', mean(female_survived))
+# message('La proporción de supervivencia de los hombres es de ', mean(male_survived))
+# paste('La proporción de supervivencia de los hombres es de ', mean(male_survived))
+# sprintf('La proporción de supervivencia de los hombres es de %f', mean(male_survived))
+# como notamos en el output, los comandos sprintf() y paste() 
+# devuelven 'character' y message() devuelve un mensaje.
+```
+
+\clearpage
+
+##### 9. Cree que el tipo de ticket del pasajero (clase de cabina) esta asociado con su supervivencia?
+
+Veamos las proporciones de supervivencia de cada clase
+```{r}
+supervivencia_clase_1=mean(tit[pclass==1,'survived'])
+supervivencia_clase_1
+supervivencia_clase_2=mean(tit[pclass==2,'survived'])
+supervivencia_clase_2
+supervivencia_clase_3=mean(tit[pclass==3,'survived'])
+supervivencia_clase_3
+```
+
+Es evidente que la clase de la cabina no es independiente de las chances de sobrevivir porque se ve que en las mejores clases las chances fueron mas altas.
+
+\clearpage
+
+##### 10. Estudie la distribución de las tarifas. Que observa? Le parece razonable suponer que la variable tarifa tenga distribución normal? Calcule la media y la mediana. Puede decidir de antemano quién es mas grande si la media o la mediana?
+
+Analizaremos la información de las tarifas (variable 'fare') a través de diferentes tipos de gráficos. Como ya convertimos 'fare' en una variable numérica, podemos hacer un histograma (en general siempre podés hacer un histograma con cualquier tipo de variable pero es más adecuado para variables numéricas)
+
+```{r}
+hist(fare,nclass=15,freq=F,col='red',
+     main="Histograma de las tarifas")
+```
+
+Para agregarle un poco de precisión al gráfico veamos una variación del mismo pidiéndole una cantidad más grande de intervalos en los datos, es decir, establezcamos un 'nclass' (o un 'break', ya que tienen la 'misma' función) más alto
+
+```{r}
+hist(fare,freq=F,col='red', 
+     #nclass = 30,
+     #xlim=c(0,400),
+     breaks = 30,
+     main="Histograma de las tarifas")
+# break = int, establece la cantidad de divisiones del intervalo de los datos
+# (i.e. la cantidad de columnas)
+# break = vector, establece los cortes de cada intervalo.
+# Ej: break= c(0,1,2), vamos a tener los intervalos [0,1] y [1,2].
+```
+
+Observamos que la mayor concentración de tickets se encuentra en las franjas de precios 0~100 y 200~250, siendo esta última la de mayor densidad. Con lo cual parece no tener una densidad normal.
+
+Veamos ahora un gŕafico de caja
+```{r}
+boxplot(fare, xlab="Tickets",
+        main="Tickets")
+```
+
+
+Que el hecho de que la variable tenga una distribución normal sea razonable o no depende de la clase de pasajeros del Titanic, si es muy variada (y uniforme) podríamos pensar que sí es razonable que la distribución sea normal. Ahora bien, si la mayoría de personas son personas de bajos recursos probablemente tengamos una concentración en los tickets de menor costo y recíprocamente si la mayor parte de los pasajeros son de altos recursos económicos.
+
+Calculemos media y mediana por medio de los comandos \textit{mean()} y \textit{median()} respectivamente.
+
+Recordemos ambas nociones antes de responder de antemano que creemos lo que va a pasar. La media es el promedio, intuitivamente es el valor al que 'tiende' la muestra. La mediana es un valor respecto del cual los datos quedan divididos a la mitad en tanto que vamos a tener un 50% de la muestra en el intervalo [minimo, mediana] y la otra mitad en el intervalo [mediana, maximo]. Entonces si por ejemplo la muestra se trata de datos concentrados cerca del mínimo y el máximo no es alcanzado muchas veces pero es un número considerablemente superior al mínimo (tan superior que nos cambie mucho la media) entonces media y mediana serán muy distintas, con mediana << media. Es decir, la media no 've' la densidad, la mediana sí.
+
+En nuestro caso concreto la verdad no se qué creer porque no termino de entender intuitivamente (porque teóricamente no hay mucho mas para decir que lo que dijimo antes) la información que aportan media y mediana.
+
+Calculemos ambas y veamos
+```{r}
+media_tickets=mean(fare)
+media_tickets
+mediana_tickets=median(fare)
+mediana_tickets
+```
+
+Algo que podemos hacer para ver mejor si se aleja de la distribución normal es dibujar el hisograma superpuesto con la curva de densidad (con entradas la media y la desviación de los tickets). Tenemos
+
+```{r}
+media.es<-mean(fare)
+desvio.es<-sd(fare)
+grilla<-seq(range(fare)[1],
+            range(fare)[2],length=100)
+funn<-dnorm(grilla,media.es,desvio.es)
+hist(fare,nclass=15,freq=F, 
+     main="Histograma de Densidad de las tarifas")
+lines(grilla,funn,col="blue",lwd=2)
+```
+
+\clearpage
+
+##### 11. Estudie la relación entre tarifa y clase y entre edad y clase.
+
+Antes que nada mencionar que no todos los tipos de gráficos sirven para lo mismo. 
+
+Por ejemplo si queremos ver relaciones entre variables de tipo numérico, un ǵrafico de barras no va a aportar información muy clara, y en cambio un gráfico de dispersión es mas adecuado. Pero si nos interesa ver como se distribuyen los datos de cierta variable numerica en otra variabla categórica entonces el adecuado sería un gráfico de caja, ya que un diagrama de dispersión, de barras o de torta serían simplemente manchas negras (si los datos numéricos son muchos).
+
+Como para tener en la cabeza, los distintos gráficos son adecuados para las siguientes situaciones (a grandes rasgos)
+\begin{itemize}
+        \item Histograma: Para estudiar densidad de una variable numérica.
+        \item Gráfico de caja: Para estudiar var categorica vs var numérica. Es decir, la disposición de la numérica en las categorías o grupos de la categórica.
+        \item Diagrama de dispersión: Para estudiar var numérica vs var numérica.
+        \item Gráfico de barras o de torta: Para estudiar la distribución de una (o más) var categórica en el total de datos.
+\end{itemize}
+
+Dicho esto y a riesgo de repetirnos, mostraremos gráficos adecuados e inadecuados en las relaciones que queremos estudiar para remarcar la diferencia.
+
+#### Tarifa vs Clase
+
+Empecemos con la relación tarifa vs clase. Donde tarifa \underline{debería} ser de tipo numérico y clase \underline{debería} ser de tipo factor. Como ya arreglamos la clase de estas variables en el Ejercicio 7 podemos realizar algún gráfico.
+
+Como mencionamos al principio, para comparar una variable numérica vs una categórica el gráfico de barras no es adecuado. Veamos que esto es así.
+
+Hagamos una tabla asociada a la relación que queremos estudiar y la tabla transpuesta, para ver como cambia el output
+```{r}
+tabla_tarifa_clase = table(fare,pclass)
+tabla_clase_tarifa = table(pclass,fare)
+```
+
+Hagamos ambos gráficos de barras, que en general es adecuado para ver la distribución de una o mas variables categórica en el total de datos
+```{r}
+par(mfrow=c(1,2))
+barplot(tabla_tarifa_clase, main='Tarifa vs Clase')
+barplot(tabla_clase_tarifa, main='Clase vs Tarifa')
+par(mfrow=c(1,1))
+```
+
+Se ve que como la variable tarifa tiene muchos datos este gráfico es caótico y está lejos de decirnos algo sobre la distribución de las tarifas en las distintas clases del barco.
+
+Veamos el gráfico de torta que tiene en general la misma aplicación que el de barras
+```{r}
+par(mfrow=c(1,2))
+pie(tabla_tarifa_clase, main='Tarifa vs Clase')
+pie(tabla_clase_tarifa, main='Clase vs Tarifa')
+par(mfrow=c(1,1))
+```
+Que vuelve a ser caótico.
+
+Por último hagamos un diagrama de dispersión, que se usa para comparar variables numéricas
+```{r}
+par(mfrow=c(1,2))
+plot(tabla_tarifa_clase, main='Tarifa vs Clase')
+plot(tabla_clase_tarifa, main='Clase vs Tarifa')
+par(mfrow=c(1,1))
+```
+
+Veamos que efectivamente otros gráficos como los de caja son mas adecuados.
+
+Veamos el gráfico de caja. El comando \textit{boxplot()} no funciona por tablas sino por la asignación de una variable numérica y una categórica, de forma que los datos numéricos van a ser divididos en las categorías de la variable categórica.
+
+```{r}
+boxplot(fare~pclass)
+# donde: y ~ grp, where y is a numeric vector of data values to be 
+# split into groups according to the grouping variable grp
+```
+Este tipo de gráfico sí es mucho mas sugerente y adecuado que los demás ya que se ve mucho mas claramente la distribución de cada clase en cada cabina.
+
+
+#### Edad vs Clase
+
+Como ya convertimos las variables 'age' y 'pclass' a las clases correctas podemos realizar un gráfico adecuado para analizar esta relación.
+
+Vamos a ver directamente los gráficos adecuados. Edad es una variable numérica y clase es categórica, con lo cual el adecuado sería el gráfico de caja.
+```{r}
+boxplot(age~pclass)
+```
+
+\clearpage
+
+##### 12. Respecto a la relación entre la edad y la tarifa podemos pensar que las personas más jóvenes tenían menos dinero y por ende compraron los tiquetes más baratos. Puede confirmar esto en base a los datos?
+
+#### Edad vs Tarifa
+Comparemos ahora estas dos variables numéricas en un gráfico de dispersión.
+
+Primero notar que hacer una tabla con los datos que vamos a relacionar no tiene sentido porque como ambas son numéricas estaríamos creando filas y columnas para valores que no representan nada más que un sólo punto.
+
+Realicemos un gráfico de dispersión
+```{r}
+plot(age,fare, xlab='Edad',ylab='Ticket',
+     main='Dispersión Edad vs Ticket',
+     type='n')
+# al poner type='n' sólo dibujamos la caja dónde vamos a agregar los puntos
+# por separado a continuación.
+points(age[age<=20], fare[age<=20], pch=20, col='magenta')
+points(age[age>20],fare[age>20],pch=20,col='green')
+# ahora agregamos estos puntos a la caja vacía
+# pch (peach) establece el tipo de punto (circulo, triangulo, relleno, vacío, etc.) (Ver ?plot para mas info)
+```
+
+Observamos que hay una franja de menores de edad que compraron todas las variedades de precios de los tickets. Además hay compras en todas los tickets en la franja de edad de entre 0 y 20 años, con lo cual no podemos confirmar la idea de que los jóvenes tenían menos dinero y por tanto sus compras iban a ser de boletos baratos.

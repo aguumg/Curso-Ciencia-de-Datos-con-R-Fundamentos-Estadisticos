@@ -1,0 +1,53 @@
+---
+title: "Entrega 5"
+author: "Agustin Muñoz Gonzalez"
+date: "27/7/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparamos el entorno.
+
+```{r}
+rm(list=ls())
+```
+
+7. **Para entregar**: Implemente una función **class.nopar** que dado un punto $x_{new}$ determine la clase a la que pertenece el nuevo individuo que tiene este valor en la covariable mediante la regla plug–in de Bayes $\widehat{g}$ basada en las estimaciones no paramétricas de las densidades $f_1$ y $f_0$ usando núcleo gaussiano. Para ello entrar como input de la función implementada el punto $x_{new}$, los vectores de datos $X_{datos}$ e $Y_{datos}$ y las ventanas $h_1$ y $h_0$ : class.nopar($x_{new}$, $X_{datos}$, $Y_{datos}$, $h_1$, $h_0$).
+
+\underline{Resolución:}
+
+Notar que por una cuestión de usar los mismos valores que toma la variable respuesta $Y$, llamamos $f_1$ a la función de densidad de la altura de un hongo de la variedad I y $f_2$ a la función de densidad de la altura de un hongo de la variedad II.
+
+Por último los inputs que tomamos para la función class.nopar() son
+
+- x para $x_{new}$;
+- X para $X_{datos}$;
+- Y para $Y_{datos}$;
+- h_1 para $h_1$;
+- h_2 para $h_0$ (para usar la misma numeración que p2 y f_2).
+
+Ahora sí, definimos la función que nos pide el ejercicio. Adentro de la función definimos también las estimaciones de las proporciones de 1's y 2's, p1 y p2 resp., y las estimaciones de f_1 y f_2, f_1_hat y f_2_hat resp. 
+
+```{r}
+# Y debe ser un vector de 1's y 2's.
+class.nopar=function(x,X,Y,h_1,h_2){
+  # Defimos las proporciones de 1's y 2's estimadas
+  p1=length(Y==1)/length(Y)
+  p2=length(Y==2)/length(Y)
+  # Definimos las estimaciones de f_1 y f_0
+  f_1_hat=function(x,X,h){
+  df <- approxfun(density(X, kernel='gaussian',bw=h))
+  df(x)
+  }
+  f_2_hat=function(x,X,h){
+    df <- approxfun(density(X, kernel='gaussian',bw=h))
+    df(x)
+  }
+  # Definimos el clasificador por la regla de Bayes
+  ifelse(f_1_hat(x,X,h_1)*p1>f_2_hat(x,X,h_2)*p2,1,2)
+}
+```
+

@@ -1,0 +1,113 @@
+---
+title: "Guia 21 clase"
+author: "Agustin Muñoz González"
+date: "1/7/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Preparamos el entorno.
+
+```{r}
+rm(list=ls())
+library(ggplot2)
+library(tidyr)
+library(gganimate)
+```
+
+2.
+El intervalo de confianza 0.95 es un intervalo tq la proba de encontrar el valor a estimar en ese intervalo es 95%. Es decir, el intervalo $I=[a(X_1,\dots,X_n),b(X_1,\dots,X_n)]$ es un intervalo de confianza de nivel $1-\alpha$ para el parámetro $\theta$ si
+
+$$P(a(X_1,\dots,X_n)\leq \theta \leq b(X_1,\dots,X_n))=1-\alpha.$$
+
+Tal intervalo es movernos 1 error estandar (se) para cada lado de nuestro estimador, i.e. I=[mu-se,mu+se].
+
+```{r}
+datos=read.csv('datos.csv',header=T)
+mu=mean(datos$gas_equipo_1)
+mu
+se=sd(datos$gas_equipo_1)/sqrt(5)
+se
+intervalo=c(mu-se,mu+se)
+intervalo
+```
+
+2. Implementacion en R
+
+En nuestro caso $a(X_1,\dots,X_n)=\overline{\mu}_n-z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ y $b(X_1,\dots,X_n)=\overline{\mu}_n+z_{\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ son los bordes del intervalo de confianza $1-\alpha$ cuando $X_i\sim \mathcal{N}(0,1)$ y conocemos $\sigma_0$.
+
+Si en vez de trabajar con $\sigma_0$ trabajar con su estimador $S$ pagamos el precio de cambiar la $Z\sim\mathcal{N}(0,1)$ por la t de student:
+$a(X_1,\dots,X_n)=\overline{\mu}_n-t_{n-1,\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$ y $b(X_1,\dots,X_n)=\overline{\mu}_n+t_{n-1,\alpha/2}*\sqrt{\frac{\sigma_0^2}{n}}$
+con $t_{n-1,\alpha/2}=qt(1-\alpha/2,n-1)$.
+
+Como no conocemos $\sigma$ usamos la t de student.
+
+```{r}
+intervalo.mu.exacto.normal=function(datos,nivel){
+  mu=mean(datos)
+  alpha=1-nivel
+  n=length(datos)
+  t=qt(1-alpha/2,n-1)
+  error=t*sd(datos)/sqrt(length(datos))
+  c(mu-error,mu+error)
+}
+```
+
+3. Intervo asintótico para $\mu = E(X)$. Considere n = 120 datos de duración de lámparas
+(en meses). Obtenga una estmación por intervalos para $\mu$ utlizando un procedimiento de
+nivel asintótico 0,95. Ingrese los extremos del intervalo obtenido al documento compartido.
+
+\underline{Resolución:}
+
+El intervalo $I=[a(X_1,\dots,X_n),b(X_1,\dots,X_n)]$ es un intervalo de confianza de nivel **asintótico** $1-\alpha$ para el parámetro $\theta$ si
+
+$$\lim_{n\to\infty} P(a(X_1,\dots,X_n)\leq \theta \leq b(X_1,\dots,X_n))=1-\alpha,$$
+
+i.e. $P(a(X_1,\dots,X_n)\leq \theta \leq b(X_1,\dots,X_n))\approx 1-\alpha.$
+
+Por el TCL tenemos
+
+$$\frac{\overline{X}_n-\mu}{\sqrt{\mathbb{V}(\overline{X}_n)}}=
+\frac{\overline{X}_n-\mu}{se(\overline{X}_n)}=
+\frac{\overline{X}_n-\mu}{\frac{\sigma}{\sqrt{n}}}\sim \mathcal{N}(0,1).$$
+Como ademas $\frac{\sigma}{S}\xrightarrow[n]{} 1$ entonces
+
+$$\frac{\sigma}{S}\frac{\overline{X}_n-\mu}{\frac{\sigma}{\sqrt{n}}}=
+\frac{\overline{X}_n-\mu}{\frac{S}{\sqrt{n}}}\sim \mathcal{N}(0,1).$$
+
+Es decir,
+$$\lim_{n\to\infty} P(-z_{\alpha/2}\leq \frac{\overline{X}_n-\mu}{\frac{S}{\sqrt{n}}} \leq z_{\alpha/2})=1-\alpha.$$
+
+Entonces $a(X_1,\dots,X_n)=\overline{X}_n-z_{\alpha/2}*\frac{S}{\sqrt{n}}$ y $b(X_1,\dots,X_n)=\overline{X}_n+z_{\alpha/2}*\frac{S}{\sqrt{n}}$ son los bordes del intervalo de confianza asintótico $1-\alpha$ para el parámetro $\mu$.
+
+```{r}
+lamparas=read.csv('lamparas.csv',header=T)
+mu=mean(lamparas$lamparas)
+se=sd(lamparas$lamparas)/sqrt(120)
+nivel=0.95
+alpha=1-nivel
+z=qnorm(1-alpha/2)
+error=z*se
+intervalo=c(mu-error,mu+error)
+intervalo
+```
+
+
+3.en R Implementación Implemente una función intervalo.mu.asin que tenga por input
+un conjunto de datos x 1 , . . . , x n , provenientes de una muestra de X, el nivel $1 - \alpha$ y devuelva el intervalo de confianza asintótico $1 - \alpha$ para $\mu=E(X)$. Subí el codigo a este documento compartido.
+
+\underline{Resolución:}
+
+```{r}
+intervalo.mu.asin=function(datos,nivel){
+  mu=mean(datos)
+  alpha=1-nivel
+  z=qnorm(1-alpha/2)
+  se=sd(datos)/sqrt(length(datos))
+  error=z*se
+  c(mu-error,mu+error)
+}
+```
